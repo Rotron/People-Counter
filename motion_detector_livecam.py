@@ -2,6 +2,8 @@ import argparse
 import imutils
 import time
 import cv2
+import numpy as np
+
 
 line_point1 = (400,0)
 line_point2 = (400,500)
@@ -60,30 +62,17 @@ class Person:
 
 
 def get_footage():
-  #  ap = argparse.ArgumentParser()
-  #  ap.add_argument("-v", "--video", help="path to the video file")
-  #  args = vars(ap.parse_args())
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-v", "--video", help="path to the video file")
+    args = vars(ap.parse_args())
 
-   # if args.get("video", None) is None:
+    if args.get("video", None) is None:
         camera = cv2.VideoCapture(0)
-        #ret, frame = camera.read()
-        #rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
-
-       # cv2.imshow('frame', rgb)
-       # if cv2.waitKey(1) & 0xFF == ord('q'):
-       #     out = cv2.imwrite('capture.jpg', frame)
         time.sleep(0.25)
         return camera
 
-    #else:
-    #    return cv2.VideoCapture(args["video"])
-
-
-
-      
-
-   # else:
-   #     return cv2.VideoCapture(args["video"])
+    else:
+        return cv2.VideoCapture(args["video"])
 
 def find_foreground_objects(background_model):
     thresh = cv2.threshold(background_model, 25, 255, cv2.THRESH_BINARY)[1]
@@ -96,6 +85,24 @@ def find_foreground_objects(background_model):
     (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     return cnts
+
+
+def mouse_callback(event, x, y, flags, param):
+    global line_point1
+    global line_point2
+   
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print 'Start Mouse Position: '+str(x)+', '+str(y)
+        line_point1 = (x, y)    
+           
+
+    elif event == cv2.EVENT_LBUTTONUP:
+        print 'End Mouse Position: '+str(x)+', '+str(y)
+        line_point2 = (x, y)
+
+        cv2.line("Security Feed", line_point1, line_point2, (255, 0, 0), 2)
+
 
 def main():
     camera = get_footage()
@@ -155,6 +162,15 @@ def main():
 
         cv2.putText(frame, "Number of people inside: {}".format(inside_count), (10, 20),
 		cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+       
+
+        #cv2.SetMouseCallback(frame, mouse, 0)
+
+      
+        cv2.setMouseCallback('Security Feed', mouse_callback)
+
+
+
 
         cv2.line(frame, line_point1, line_point2, (255, 0, 0), 2)
         cv2.imshow("Security Feed", frame)
